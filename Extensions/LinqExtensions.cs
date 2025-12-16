@@ -19,6 +19,21 @@ namespace AtanUtils.Extensions
                 action(item);
             }
         }
+        
+        public static bool TryGetItem<T>(this List<T> list, Predicate<T> predicate, out T item)
+        {
+            foreach (var element in list)
+            {
+                if (predicate(element))
+                {
+                    item = element;
+                    return true;
+                }
+            }
+
+            item = default;
+            return false;
+        }
     }
 }
 

@@ -1,6 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace AtanUtils.Extensions
 {
@@ -36,6 +43,28 @@ namespace AtanUtils.Extensions
             Array.Resize(ref array, newSize);
         }
         
+        public static T RandomElement<T>(this IEnumerable<T> source)
+        {
+            if (source == null) 
+                throw new ArgumentNullException(nameof(source));
+
+            T selected = default!;
+            int count = 0;
+
+            foreach (var element in source)
+            {
+                count++;
+             
+                if (Random.Range(0, count) == 0)
+                    selected = element;
+            }
+
+            if (count == 0)
+                throw new InvalidOperationException("Sequence contains no elements");
+
+            return selected;
+        }
+        
         public static string MillisecondsToTimeString(this long milliseconds)
         {
             var seconds = milliseconds / 1000;
@@ -54,6 +83,25 @@ namespace AtanUtils.Extensions
                 parts.Add($"{seconds % 60} sec");
             
             return string.Join(" ", parts);
+        }
+        
+        public static string AddQueryArguments(this string url, params (string key, string value)[] args)
+        {
+            if (string.IsNullOrEmpty(url) || args == null || args.Length == 0)
+                return url;
+
+            // filter out any null or empty keys
+            var pairs = args
+                .Where(arg => !string.IsNullOrEmpty(arg.key))
+                .Select(arg =>
+                    $"{Uri.EscapeDataString(arg.key)}={Uri.EscapeDataString(arg.value ?? string.Empty)}"
+                ).ToList();
+
+            if (!pairs.Any())
+                return url;
+
+            var separator = url.Contains('?') ? '&' : '?';
+            return url + separator + string.Join("&", pairs);
         }
         
         public static string MillisecondsToTimeString(this int milliseconds)
@@ -78,6 +126,102 @@ namespace AtanUtils.Extensions
             Vector4 av = vecValue - vecA;
             float t = Vector4.Dot(av, ab) / abSqrMagnitude;
             return Mathf.Clamp01(t);
+        }
+        
+        public static T ParseEnum<T>(this string value, bool ignoreCase = true) where T : struct
+        {
+            if (Enum.TryParse<T>(value, ignoreCase, out var result))
+                return result;
+
+            throw new ArgumentException($"Unable to parse '{value}' to enum {typeof(T).Name}");
+        }
+        
+        public static T RandomElementByProbability<T>(this IEnumerable<T> source, Func<T, float> weightSelector)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (weightSelector == null) throw new ArgumentNullException(nameof(weightSelector));
+
+            float total = 0f;
+            T last = default;
+            foreach (var item in source)
+            {
+                total += weightSelector(item);
+                last = item;
+            }
+            if (total <= 0f) throw new InvalidOperationException("Sum of weights must be positive");
+
+            float r = UnityEngine.Random.value * total;
+            foreach (var item in source)
+            {
+                r -= weightSelector(item);
+                if (r <= 0f) return item;
+            }
+
+            return last;
+        }
+        
+        public static NativeArray<T> ToNativeArray<T>(this T[] source, Allocator allocator)
+            where T : struct
+        {
+            return new NativeArray<T>(source, allocator);
+        }
+        
+        public static byte[] ToByteArray<T>(this NativeArray<T> array) where T : struct
+        {
+            int size = UnsafeUtility.SizeOf<T>() * array.Length;
+            byte[] result = new byte[size];
+
+            NativeArray<byte> bytes = array.Reinterpret<byte>(UnsafeUtility.SizeOf<T>());
+            bytes.CopyTo(result);
+
+            return result;
+        }
+        
+        public static NativeArray<T> ToNativeArray<T>(this byte[] source, Allocator allocator)
+            where T : struct
+        {
+            int elemSize = UnsafeUtility.SizeOf<T>();
+            if (source.Length % elemSize != 0)
+                throw new ArgumentException($"Byte array length {source.Length} is not a multiple of element size {elemSize}.");
+
+            int length = source.Length / elemSize;
+            var array = new NativeArray<T>(length, allocator, NativeArrayOptions.UninitializedMemory);
+
+            var bytes = array.Reinterpret<byte>(elemSize);
+            source.CopyTo(bytes);
+
+            return array;
+        }
+        
+        public static byte[] ToByteArray<T>(this T[] array) where T : struct
+        {
+            return MemoryMarshal.AsBytes(array.AsSpan()).ToArray();
+        }
+        
+        public static T[] Repeat<T>(this T value, int count)
+        {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), "Count must be non-negative.");
+
+            var array = new T[count];
+            for (int i = 0; i < count; i++)
+                array[i] = value;
+            return array;
+        }
+
+        public static float3 ToFloat3(this Color color)
+        {
+            return new float3(color.r, color.g, color.b);
+        }
+        
+        public static float3 ToFloat3Linear(this Color color)
+        {
+            return new float3(color.linear.r, color.linear.g, color.linear.b);
+        }
+        
+        public static float Squared (this float v)
+        {
+            return v * v;
         }
     }
 }

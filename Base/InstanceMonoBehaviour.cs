@@ -1,10 +1,11 @@
+using System;
 using UnityEngine;
 
 namespace AtanUtils.Base
 {
     /// <summary>
     /// Static Instance.
-    /// OVERRIDE AWAKE IF YOU USE IT
+    /// OVERRIDE AWAKE/ONENABLE/ONDISABLE IF YOU USE IT
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public abstract class InstanceMonoBehaviour<T> : MonoBehaviour where T : InstanceMonoBehaviour<T>
@@ -12,6 +13,16 @@ namespace AtanUtils.Base
         public static T Instance { get; private set; }
 
         protected virtual void Awake()
+        {
+            EnsureInstance();
+        }
+
+        protected virtual void OnEnable()
+        {
+            EnsureInstance();
+        }
+
+        private void EnsureInstance()
         {
             if (Instance != null && Instance != this)
             {
@@ -21,6 +32,14 @@ namespace AtanUtils.Base
             }
 
             Instance = (T)this;
+        }
+
+        private void OnDisable()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
     }
 }

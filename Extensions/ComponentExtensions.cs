@@ -64,6 +64,37 @@ namespace AtanUtils.Extensions
             transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + zAdd);
         }
         
+        public static void Set2DPosition (this Transform transform, Vector2 position)
+        {
+            transform.position = new Vector3(position.x, position.y, transform.position.z);
+        }
+        
+        public static void Set2DPosition (this Transform transform, float x, float y)
+        {
+            transform.position = new Vector3(x, y, transform.position.z);
+        }
+        
+        public static void Set2DScale (this Transform transform, Vector2 scale)
+        {
+            transform.localScale = new Vector3(scale.x, scale.y, 1f);
+        }
+        
+        public static void Set2DScale (this Transform transform, float x, float y)
+        {
+            transform.localScale = new Vector3(x, y, 1f);
+        }
+        
+        /// <summary>
+        /// Can be used to perform an operation on a transform without having to cache it first
+        /// </summary>
+        /// <param name="transform"></param>
+        /// <param name="operation"></param>
+        public static void Operate (this Transform transform, System.Action<Transform> operation)
+        {
+            if (operation == null) return;
+            operation(transform);
+        }
+        
         #endregion
 
         #region Vector
@@ -103,6 +134,26 @@ namespace AtanUtils.Extensions
             return new Vector2(vector.x, vector.y + y);
         }
         
+        public static (float x, float y) ToTuple(this Vector2 vector)
+        {
+            return (vector.x, vector.y);
+        }
+        
+        public static (float x, float y, float z) ToTuple(this Vector3 vector)
+        {
+            return (vector.x, vector.y, vector.z);
+        }
+        
+        public static Vector2 ToVector(this (float x, float y) tuple)
+        {
+            return new Vector2(tuple.x, tuple.y);
+        }
+        
+        public static Vector3 ToVector(this (float x, float y, float z) tuple)
+        {
+            return new Vector3(tuple.x, tuple.y, tuple.z);
+        }
+        
         #endregion
 
         #region Rigidbody
@@ -123,7 +174,9 @@ namespace AtanUtils.Extensions
         }
 
         #endregion
-        
+
+        #region Transform
+
         public static void DestroyAllChildren(this Transform transform)
         {
             for (var i = transform.childCount - 1; i >= 0; i--)
@@ -131,5 +184,33 @@ namespace AtanUtils.Extensions
                 Object.Destroy(transform.GetChild(i).gameObject);
             }
         }
+
+        /// <summary>
+        /// Converts a world‐space rotation into local‐space relative to this transform.
+        /// </summary>
+        public static Quaternion InverseTransformRotation(this Transform t, Quaternion worldRotation)
+        {
+            return Quaternion.Inverse(t.rotation) * worldRotation;
+        }
+
+        /// <summary>
+        /// Converts a local‐space rotation into world‐space using this transform’s rotation.
+        /// </summary>
+        public static Quaternion TransformRotation(this Transform t, Quaternion localRotation)
+        {
+            return t.rotation * localRotation;
+        }
+        
+        public static Transform[] GetAllChildren(this Transform transform)
+        {
+            Transform[] children = new Transform[transform.childCount];
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                children[i] = transform.GetChild(i);
+            }
+            return children;
+        }
+        
+        #endregion
     }
 }

@@ -14,7 +14,7 @@ namespace AtanUtils.Base
         {
             if (Instance != null && Instance != this)
             {
-                Debug.LogWarning($"Another instance of {typeof(T).Name} already exists. Destroying duplicate.");
+                //Debug.Log($"Another instance of {typeof(T).Name} already exists. Destroying duplicate.");
                 Destroy(gameObject);
                 return;
             }
