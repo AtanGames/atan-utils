@@ -27,6 +27,12 @@ namespace AtanUtils.Utils
         {
             return "<size=" + size + ">" + innerText + "</size>";
         }
+
+        public static string RT_DeltaSize(int deltaSize, string innerText)
+        {
+            var deltaSign = deltaSize >= 0 ? "+" : "";
+            return "<size=" + deltaSign + deltaSize + ">" + innerText + "</size>";
+        }
         
         public static string RT_Bold(string innerText)
         {
