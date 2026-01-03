@@ -11,15 +11,18 @@ using UnityEngine.UI;
 
 namespace AtanUtils.UI.Controls
 {
-    public class ButtonControl : MonoBehaviour, IPointerClickHandler, IPaletteAware, IStateAware, ITooltipProvider
+    public class ButtonControl : MonoBehaviour, IPointerClickHandler, IPaletteAware, IStateAware, ITooltipProvider, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("Button")] 
         
         public Graphic background;
         public SoundObj pressSound;
 
+        public Color hoverTint = new Color(0.8f, 0.8f, 0.8f, 1f);
+        
         public PaletteKey defaultBackgroundColor = PaletteKey.Primary;
         public PaletteKey selectedBackgroundColor = PaletteKey.Selection;
+        public PaletteKey disabledBackgroundColor = PaletteKey.Warning;
         
         public Action OnPress;
         
@@ -30,6 +33,14 @@ namespace AtanUtils.UI.Controls
         }
 
         private bool _isSelected;
+        private bool _isHovered;
+        private bool _isDisabled;
+
+        public bool IsDisabled
+        {
+            get => _isDisabled;
+            set => _isDisabled = value;
+        }
         
         private bool _overrideBackgroundColor;
         private Color _customBackgroundColor;
@@ -43,6 +54,9 @@ namespace AtanUtils.UI.Controls
 
         public virtual void OnPointerClick(PointerEventData eventData)
         {
+            if (_isDisabled)
+                return;
+            
             OnPress?.Invoke();
             pressSound?.Play();
         }
@@ -61,8 +75,7 @@ namespace AtanUtils.UI.Controls
 
         public virtual void UpdatePalette()
         {
-            if (background != null)
-                background.color = GetBackgroundColor();
+            UpdateBackground();
         }
 
         public virtual void UpdateState(StateInfo stateInfo)
@@ -95,6 +108,9 @@ namespace AtanUtils.UI.Controls
 
         private Color GetBackgroundColor()
         {
+            if (_isDisabled)
+                return disabledBackgroundColor.GetColor();
+            
             if (_isSelected)
                 return selectedBackgroundColor.GetColor();
             
@@ -102,6 +118,31 @@ namespace AtanUtils.UI.Controls
                 return _customBackgroundColor;
             
             return defaultBackgroundColor.GetColor();
+        }
+        
+        private void UpdateBackground ()
+        {
+            if (background == null)
+                return;
+            
+            Color baseColor = GetBackgroundColor();
+            
+            if (_isHovered && !_isDisabled)
+                baseColor *= hoverTint;
+            
+            background.color = baseColor;
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            _isHovered = true;
+            UpdateBackground();
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            _isHovered = false;
+            UpdateBackground();
         }
     }
 }

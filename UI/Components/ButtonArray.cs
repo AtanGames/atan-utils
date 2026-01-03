@@ -11,8 +11,24 @@ namespace AtanUtils.UI.Components
         public Action<int> OnButtonPressed;
         
         public GameObject buttonPrefab;
-
+        public bool clearOnStart = true;
+        
         private List<ButtonControl> _buttons;
+
+        private void Awake()
+        {
+            if (!clearOnStart)
+                return;
+            
+            var childCount = transform.childCount;
+            for (int i = childCount - 1; i >= 0; i--)
+            {
+                var child = transform.GetChild(i);
+                
+                if (child.name.StartsWith(buttonPrefab.name))
+                    Destroy(child.gameObject);
+            }
+        }
 
         public void LoadIconButtons(Sprite[] icons, Color[] iconColors = null)
         {
@@ -73,7 +89,7 @@ namespace AtanUtils.UI.Components
                 return;
 
             foreach (var button in _buttons)
-                Destroy(button);
+                Destroy(button.gameObject);
             
             _buttons.Clear();
         }

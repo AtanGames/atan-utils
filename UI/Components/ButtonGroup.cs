@@ -49,8 +49,19 @@ namespace AtanUtils.UI.Components
                 button.OnPress += () => OnPress(index);
             }
         }
+        
+        public void SetSelectedIndex(int index, bool invokeEvent = true)
+        {
+            if (index < 0 || index >= buttons.Length)
+            {
+                ClearSelection();
+                return;
+            }
+            
+            OnPress(index, invokeEvent);
+        }
 
-        private void OnPress(int index)
+        private void OnPress(int index, bool invokeEvent = true)
         {
             if (_currentSelection != null)
             {
@@ -68,7 +79,8 @@ namespace AtanUtils.UI.Components
             
             _currentSelection.OnButtonSelect();
             
-            OnButtonSelected?.Invoke(index);
+            if (invokeEvent)
+                OnButtonSelected?.Invoke(index);
         }
         
         public void ClearSelection()

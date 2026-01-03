@@ -20,6 +20,11 @@ namespace AtanUtils.UI.Data
         
         public Color Selection;
 
+        [Space]
+        
+        public Color Warning;
+        public Color Error;
+
         [Header("Font")] 
         
         public TMP_FontAsset MainFont;
@@ -33,6 +38,8 @@ namespace AtanUtils.UI.Data
                 PaletteKey.Selection => Selection,
                 PaletteKey.Background => Background,
                 PaletteKey.Accent => Accent,
+                PaletteKey.Warning => Warning,
+                PaletteKey.Error => Error,
                 _ => throw new System.ArgumentOutOfRangeException(nameof(key), key, null)
             };
         }
@@ -53,7 +60,9 @@ namespace AtanUtils.UI.Data
         TextPrimary,
         Selection,
         Background,
-        Accent
+        Accent,
+        Warning,
+        Error,
     }
 
     public enum FontKey
