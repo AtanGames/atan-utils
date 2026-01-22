@@ -28,6 +28,31 @@ namespace AtanUtils.Extensions
             return clone;
         }
         
+        /// <summary>
+        /// Flips keys and values: Dictionary<TKey, TValue> -> Dictionary<TValue, TKey>
+        /// </summary>
+        /// <exception cref="ArgumentException">
+        /// Thrown if duplicate values exist in the original dictionary (since they become keys).
+        /// </exception>
+        public static Dictionary<TValue, TKey> Flip<TKey, TValue>(
+            this Dictionary<TKey, TValue> dict)
+            where TValue : notnull
+        {
+            if (dict == null) throw new ArgumentNullException(nameof(dict));
+
+            var flipped = new Dictionary<TValue, TKey>(dict.Count);
+
+            foreach (var kvp in dict)
+            {
+                if (flipped.ContainsKey(kvp.Value))
+                    throw new ArgumentException($"Duplicate value found: {kvp.Value}", nameof(dict));
+
+                flipped.Add(kvp.Value, kvp.Key);
+            }
+
+            return flipped;
+        }
+        
         public static List<T> Clone<T>(this List<T> list)
         {
             return new List<T>(list);

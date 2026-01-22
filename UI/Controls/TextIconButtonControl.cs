@@ -32,6 +32,8 @@ namespace AtanUtils.UI.Controls
             set => icon.sprite = value;
         }
         
+        public Image IconImage => icon;
+        
         public void SetIconColor(Color color)
         {
             icon.color = color;
